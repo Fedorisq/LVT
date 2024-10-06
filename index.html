@@ -1,194 +1,164 @@
+Вот улучшенная версия вашего HTML-кода с некоторыми оптимизациями и улучшением структуры:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Click Counter</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-color: #0e0b18;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h2 {
+            color: white;
+        }
+        progress::-webkit-progress-value {
+            background-color: aqua;
+            border-radius: 10px;
+        }
+        #leaderboard {
+            color: black;
+            background-color: white;
+            list-style-type: none;
+            padding: 0;
+        }
+        button {
+            border: none;
+            cursor: pointer;
+            background-color: rgb(56, 56, 105);
+            color: white;
+            font-size: 20px;
+            margin: 5px;
+        }
+        #click-me {
+            border-radius: 100px;
+            width: 200px;
+            height: 200px;
+            font-size: 100px;
+            margin-top: 25px;
+        }
+        #counter {
+            font-size: 48px;
+            color: #6c8399;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .push {
+            animation: touch 0.1s linear;
+        }
+        @keyframes touch {
+            50% {
+                font-size: 75px;
+            }
+            80% {
+                font-size: 100px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Кликер</h1>
     <div>
-        <button id="click-me">😀</button>
+        <button id="plus">+1 (150)</button>
+        <button id="avto">auto (450)</button>
+        <button id="save">Save</button>
     </div>
-    <div id="counter">Клики: 0</div>
     <progress id="pr" value="0" max="50"></progress>
-    
-    <div class="navigation">
-        <button id="upgrade-button">Прокачка</button>
-        <button id="leaderboard-button">Таблица лидеров</button>
-    </div>
+    <button id="click-me"></button>
+    <span id="counter">0</span>
+    <h2>Leaderboard</h2>
+    <ul id="leaderboard"></ul>
 
     <script>
+        let score = 0;
+        let avtrue = 0;
         let click = 1;
-        let totalClicks = 0;
+        let count1 = 0;
+        const pr = document.getElementById("pr");
         const button = document.getElementById("click-me");
         const counter = document.getElementById("counter");
-        const pr = document.getElementById("pr");
-        const upgradeButton = document.getElementById("upgrade-button");
-        const leaderboardButton = document.getElementById("leaderboard-button");
+        const leaderboardElement = document.getElementById("leaderboard");
+        const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+
+        function saveScore() {
+            const playerName = prompt('Enter your name:');
+            if (playerName) {
+                leaderboard.push({ name: playerName, score: score });
+                leaderboard.sort((a, b) => b.score - a.score);
+                if (leaderboard.length > 5) {
+                    leaderboard.pop();
+                }
+                localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+                renderLeaderboard();
+            }
+        }
+
+        function renderLeaderboard() {
+            leaderboardElement.innerHTML = leaderboard.map(entry => 
+                `<li>${entry.name}: ${entry.score}</li>`
+            ).join('');
+        }
+
+        function updateScore(increment) {
+            score += increment;
+            counter.textContent = score;
+            pr.value = count1;
+        }
 
         button.addEventListener("click", function() {
-            totalClicks += click;
-            counter.innerHTML = "Клики: " + totalClicks;
-            pr.value = totalClicks % 50;
-
-            if (pr.value === 0) {
-                alert("Прогресс сброшен!");
+            count1 += click;
+            updateScore(click);
+            if (!button.classList.contains("push")) {
+                button.classList.add("push");
+            }
+            setTimeout(() => button.classList.remove("push"), 300);
+            if (pr.value >= 50) {
+                pr.value = 0;
+                count1 = 0;
             }
         });
 
-        upgradeButton.addEventListener("click", function() {
-            window.location.href = "upgrade.html";
-        });
-
-        leaderboardButton.addEventListener("click", function() {
-            window.location.href = "leaderboard.html";
-        });
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Прокачка</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <h1>Прокачка Вашего Кликера</h1>
-    <div id="upgrade-info">Текущий уровень клика: 1</div>
-    <button id="upgrade-button">Улучшить (+1 к клику за 100)</button>
-    
-    <div class="navigation">
-        <button id="home-button">На главную</button>
-        <button id="leaderboard-button">Таблица лидеров</button>
-    </div>
-
-    <script>
-        let click = 1;
-        let totalClicks = 0;
-
-        const upgradeButton = document.getElementById("upgrade-button");
-        const upgradeInfo = document.getElementById("upgrade-info");
-        const homeButton = document.getElementById("home-button");
-        const leaderboardButton = document.getElementById("leaderboard-button");
-
-        upgradeButton.addEventListener("click", function() {
-            if (totalClicks >= 100) {
-                totalClicks -= 100;
+        document.getElementById("plus").addEventListener("click", function() {
+            if (score >= 150) {
                 click++;
-                upgradeInfo.innerHTML = "Текущий уровень клика: " + click;
-                alert("Улучшено! Теперь вы кликаете на " + click + " за раз!");
-            } else {
-                alert("Недостаточно кликов для улучшения!");
+                updateScore(-150);
             }
         });
 
-        homeButton.addEventListener("click", function() {
-            window.location.href = "index.html";
+        document.getElementById("avto").addEventListener("click", function() {
+            if (score >= 450 && avtrue === 0) {
+                avtrue = 1;
+                updateScore(-450);
+            }
         });
 
-        leaderboardButton.addEventListener("click", function() {
-            window.location.href = "leaderboard.html";
-        });
+        setInterval(function() {
+            if (avtrue === 1) {
+                updateScore(1);
+                count1++;
+            }
+        }, 1000);
+
+        document.getElementById("save").addEventListener('click', saveScore);
+
+        renderLeaderboard();
     </script>
 </body>
 </html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Таблица лидеров</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <h1>Таблица лидеров</h1> 
-    <table>
-        <thead>
-            <tr>
-                <th>Имя</th>
-                <th>Клики</th>
-            </tr>
-        </thead>
-        <tbody id="leaderboard-body">
-            <!-- Здесь будут отображаться лидеры -->
-        </tbody>
-    </table>
+```
 
-    <div class="navigation">
-        <button id="home-button">На главную</button>
-        <button id="upgrade-button">Прокачка</button>
-    </div>
+**Изменения и улучшения:**
 
-    <script>
-        const leaderboard = [
-            { name: "Игрок 1", clicks: 500 },
-            { name: "Игрок 2", clicks: 300 },
-            { name: "Игрок 3", clicks: 200 },
-        ];
-
-        const leaderboardBody = document.getElementById("leaderboard-body");
-        leaderboard.forEach(player => {
-            const row = document.createElement("tr");
-            row.innerHTML = `<td>${player.name}</td><td>${player.clicks}</td>`;
-            leaderboardBody.appendChild(row);
-        });
-
-        document.getElementById("home-button").addEventListener("click", function() {
-            window.location.href = "index.html";
-        });
-
-        document.getElementById("upgrade-button").addEventListener("click", function() {
-            window.location.href = "upgrade.html";
-        });
-    </script>
-</body>
-</html>
-body {
-    background-color: #0e0b18;
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
-}
-
-h1 {
-    color: #6c8399;
-}
-
-button {
-    border: none;
-    cursor: pointer;
-    background-color: rgb(56, 56, 105);
-    color: white;
-    font-size: 20px;
-    border-radius: 5px;
-    padding: 10px;
-    margin: 5px;
-}
-
-table {
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-th, td {
-    border: 1px solid #6c8399;
-    padding: 8px 12px;
-    text-align: center;
-}
-
-th {
-    background-color: #6c8399;
-    color: white;
-}
-
-.navigation {
-    margin-top: 20px;
-}
+1. **Уменьшение повторений:** Удалены повторяющиеся условия для изменения `button.innerHTML`.
+2. **Использование `textContent` вместо `innerHTML` для простого обновления текста.**
+3. **Добавлена проверка ввода имени игрока перед добавлением в таблицу лидеров.**
+4. **Улучшенная структура функции для обновления счёта.**
+5. **Обновлённые стили для более чистого и консистентного кода.**
